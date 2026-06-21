@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarieU 회원가입 신청서</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    font-size: 13px;
+    color: #222;
+    background: #f4f4f4;
+    padding: 24px 16px 90px;
+  }
+
+  .app {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  /* ── 헤더 ── */
+  .app-header {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 26px 30px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  .app-header .brand { font-size: 32px; font-weight: 800; color: #B87340; letter-spacing: 2px; }
+  .app-header .subtitle { font-size: 15px; font-weight: 600; color: #333; margin-top: 2px; }
+  .app-header .desc {
+    font-size: 11.5px; color: #888; margin-top: 10px; padding: 9px 14px;
+    background: #FDF4EC; border-left: 4px solid #B87340;
+    border-radius: 0 8px 8px 0; text-align: left; line-height: 1.6;
+  }
+
+  /* ── 진행 바 ── */
+  .progress-wrap {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    position: sticky;
+    top: 10px;
+    z-index: 50;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #5a4030;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .progress-label .pct { color: #B87340; }
+  .progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #f0e3d6;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #B87340, #d99a64);
+    border-radius: 8px;
+    transition: width .25s ease;
+  }
+  .dots {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #f0e3d6;
+    color: #B87340;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    flex-shrink: 0;
+  }
+  .dot.done { background: #B87340; color: #fff; }
+  .dot.current { border-color: #B87340; background: #fff; color: #B87340; }
+  .autosave-indicator {
+    font-size: 10.5px;
+    color: #aaa;
+    text-align: right;
+    margin-top: 6px;
+  }
+  .autosave-indicator.saved { color: #8fae6e; }
+
+  /* ── 스텝 카드 ── */
+  .step {
+    display: none;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 26px 30px 30px;
+    margin-bottom: 18px;
+  }
+  .step.active { display: block; }
+
+  .step-title {
+    background: #B87340;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    letter-spacing: .3px;
+  }
+
+  .warn-box {
+    display: none;
+    background: #FCEEEE;
+    border: 1.5px solid #e8a9a9;
+    color: #a13d3d;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 12px;
+    margin-bottom: 14px;
+    line-height: 1.7;
+  }
+  .warn-box.show { display: block; }
+  .warn-box b { display: block; margin-bottom: 4px; }
+
+  .section-body {
+    border: 1.5px solid #e0c9b5;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .row { display: flex; border-bottom: 1px solid #eee; }
+  .row:last-child { border-bottom: none; }
+  .row.invalid { background: #FFF6F6; }
+
+  .cell-label {
+    background: #f5f0eb; color: #5a4030; font-weight: 600; font-size: 12px;
+    padding: 9px 14px; min-width: 130px; width: 22%;
+    display: flex; align-items: center;
+    border-right: 1px solid #e0c9b5; line-height: 1.5;
+  }
+  .cell-label.req::after { content: " *"; color: #c0392b; font-weight: 800; }
+  .cell-value {
+    flex: 1; padding: 9px 14px; color: #555; font-size: 12px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px; line-height: 1.8;
+  }
+  .cell-value.tall { min-height: 90px; align-items: flex-start; padding-top: 10px; }
+
+  .col2 .cell-label { width: 22%; min-width: 110px; }
+  .col2 .cell-value { width: 28%; }
+  .col2 .cell-label:nth-child(3) { border-left: 1px solid #e0c9b5; }
+
+  .sub-header {
+    background: #F5EAD8; color: #B87340; font-weight: 700;
+    font-size: 12px; padding: 7px 14px; border-bottom: 1px solid #e0c9b5;
+  }
+
+  .cb { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; white-space: nowrap; cursor: pointer; }
+  .cb input[type=checkbox], .cb input[type=radio] { accent-color: #B87340; width: 14px; height: 14px; cursor: pointer; }
+
+  .field {
+    border: none; border-bottom: 1.5px solid #ccc; outline: none;
+    font-family: inherit; font-size: 12px; color: #333;
+    background: transparent; padding: 3px 4px; min-width: 80px;
+  }
+  .field:focus { border-bottom-color: #B87340; }
+  .field.wide { width: 100%; }
+  .field.mid { width: 160px; }
+  .field.short { width: 90px; }
+  .field.xshort { width: 60px; }
+
+  textarea.field {
+    border: 1px solid #ccc; border-radius: 8px; padding: 8px; resize: vertical;
+  }
+  textarea.field:focus { border-color: #B87340; }
+
+  .char-counter { font-size: 11px; color: #999; margin-top: 4px; width: 100%; }
+  .char-counter.ok { color: #6c9a4b; }
+
+  /* ── 서약/동의 텍스트 ── */
+  .oath-list { padding: 14px 18px; line-height: 1.9; color: #333; font-size: 12px; border: 1.5px solid #e0c9b5; border-radius: 10px; margin-bottom: 14px;}
+  .oath-list p { margin-bottom: 6px; }
+
+  .consent-box {
+    background: #FDF4EC; border: 1.5px solid #e0c9b5;
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 14px;
+  }
+  .consent-box .consent-title { font-weight: 700; font-size: 13px; color: #B87340; margin-bottom: 8px; }
+  .consent-box .consent-items { font-size: 11.5px; color: #444; line-height: 1.8; margin-bottom: 10px; }
+  .consent-box .consent-sign { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 12px; }
+
+  /* ── 네비게이션 ── */
+  .wizard-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #e6dccf;
+    box-shadow: 0 -4px 18px rgba(0,0,0,0.08);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 100;
+  }
+  .wizard-nav-inner { max-width: 820px; width: 100%; display: flex; gap: 10px; justify-content: space-between; }
+  .btn {
+    border: none; border-radius: 10px; padding: 11px 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: opacity .15s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: #B87340; color: #fff; }
+  .btn-secondary { background: #f0e3d6; color: #5a4030; }
+  .btn-outline { background: #fff; color: #B87340; border: 1.5px solid #B87340; }
+  .btn-group { display: flex; gap: 8px; }
+
+  /* ── 최종 확인 ── */
+  .summary-section { margin-bottom: 16px; }
+  .summary-section h4 {
+    background: #F5EAD8; color: #B87340; font-size: 12.5px; font-weight: 700;
+    padding: 7px 14px; border-radius: 8px; margin-bottom: 6px;
+  }
+  .summary-row { display: flex; font-size: 12px; padding: 4px 14px; border-bottom: 1px dashed #eee; }
+  .summary-row .k { width: 130px; color: #888; flex-shrink: 0; }
+  .summary-row .v { color: #222; font-weight: 500; word-break: break-all; }
+  .summary-missing { color: #c0392b; font-style: italic; }
+
+  .final-warn {
+    background: #FCEEEE; border: 1.5px solid #e8a9a9; color: #a13d3d;
+    border-radius: 10px; padding: 14px 18px; font-size: 12px; margin-bottom: 16px; line-height: 1.8;
+  }
+  .final-warn b { display:block; margin-bottom:6px; font-size:13px; }
+  .final-warn .jump { color: #B87340; text-decoration: underline; cursor: pointer; font-weight: 700; }
+  .final-ok {
+    background: #EFF6EA; border: 1.5px solid #b9d8a4; color: #4a7a2b;
+    border-radius: 10px; padding: 14px 18px; font-size: 12.5px; margin-bottom: 16px; font-weight: 700;
+  }
+
+  .page-footer {
+    text-align: center; margin-top: 10px; font-size: 11px; color: #aaa;
+  }
+
+  /* ── 인쇄 ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .progress-wrap, .wizard-nav, .warn-box, .app-header .desc { display: none !important; }
+    .step { display: block !important; box-shadow: none; border-radius: 0; page-break-after: always; }
+    .step:last-child { page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="app-header">
+    <div class="brand">MarieU</div>
+    <div class="subtitle">회원가입 신청서 — 온라인 작성</div>
+    <div class="desc">
+      MarieU는 성혼주의 결혼정보로, 신뢰할 수 있는 결혼의 시작을 함께하겠습니다.
+      각 단계를 차례로 작성해주세요. 작성 내용은 이 브라우저에 자동으로 임시저장됩니다.
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="stepLabel">STEP 1 / 12 — 기본 인적사항</span>
+      <span class="pct" id="stepPct">8%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:8%"></div></div>
+    <div class="dots" id="dots"></div>
+    <div class="autosave-indicator" id="autosaveIndicator">자동 임시저장 대기 중…</div>
+  </div>
+
+  <form id="marieuForm" autocomplete="off">
+
+    <!-- STEP 0: 기본 인적사항 -->
+    <div class="step active" data-step="0">
+      <div class="step-title">1. 기본 인적사항</div>
+      <div class="warn-box" id="warn0"></div>
+      <div class="section-body">
+        <div class="row col2">
+          <div class="cell-label req">성&nbsp;&nbsp;명</div>
+          <div class="cell-value"><input class="field mid" id="f_name" type="text"></div>
+          <div class="cell-label req">생년월일</div>
+          <div class="cell-value"><input class="field mid" id="f_birth" type="text" placeholder="예: 1990-01-01"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">주민등록번호</div>
+          <div class="cell-value">
+            <input class="field" style="width:100px" id="f_ssn1" type="text" placeholder="______">
+            -
+            <input class="field" style="width:110px" id="f_ssn2" type="text" placeholder="_______">
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">성&nbsp;&nbsp;별</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="gender" id="cb_gender_m" value="남성"> 남성</label>
+            <label class="cb"><input type="checkbox" name="gender" id="cb_gender_f" value="여성"> 여성</label>
+          </div>
+          <div class="cell-label req">혼인상태</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="marital" value="미혼"> 미혼</label>
+            <label class="cb"><input type="checkbox" name="marital" value="재혼"> 재혼</label>
+            <label class="cb"><input type="checkbox" name="marital" value="기타"> 기타</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="cell-label">종&nbsp;&nbsp;교</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="religion" value="무교"> 무교</label>
+            <label class="cb"><input type="checkbox" name="religion" value="기독교"> 기독교</label>
+            <label class="cb"><input type="checkbox" name="religion" value="불교"> 불교</label>
+            <label class="cb"><input type="checkbox" name="religion" value="천주교"> 천주교</label>
+            <label class="cb"><input type="checkbox" name="religion" value="기타"> 기타</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="cell-label req">주&nbsp;&nbsp;소</div>
+          <div class="cell-value"><input class="field wide" id="f_address" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">휴대폰</div>
+          <div class="cell-value"><input class="field mid" id="f_phone" type="text" placeholder="010-0000-0000"></div>
+          <div class="cell-label req">이메일</div>
+          <div class="cell-value"><input class="field mid" id="f_email" type="text" placeholder="example@email.com"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: 학력 및 직업 -->
+    <div class="step" data-step="1">
+      <div class="step-title">2. 학력 및 직업</div>
+      <div class="warn-box" id="warn1"></div>
+      <div class="section-body">
+        <div class="row col2">
+          <div class="cell-label req">최종학력</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="edu" value="고졸"> 고졸</label>
+            <label class="cb"><input type="checkbox" name="edu" value="전문대졸"> 전문대졸</label>
+            <label class="cb"><input type="checkbox" name="edu" value="대졸"> 대졸</label>
+            <label class="cb"><input type="checkbox" name="edu" value="대학원졸"> 대학원졸</label>
+          </div>
+          <div class="cell-label">전공학과</div>
+          <div class="cell-value"><input class="field mid" id="f_major" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">학교명</div>
+          <div class="cell-value"><input class="field mid" id="f_school" type="text"></div>
+          <div class="cell-label">졸업년도</div>
+          <div class="cell-value"><input class="field short" id="f_gradyear" type="text" placeholder="____년"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">직업 구분</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="jobtype" value="직장인"> 직장인</label>
+            <label class="cb"><input type="checkbox" name="jobtype" value="공무원"> 공무원</label>
+            <label class="cb"><input type="checkbox" name="jobtype" value="전문직"> 전문직</label>
+            <label class="cb"><input type="checkbox" name="jobtype" value="사업자"> 사업자</label>
+            <label class="cb"><input type="checkbox" name="jobtype" value="기타"> 기타</label>
+          </div>
+          <div class="cell-label">직장명</div>
+          <div class="cell-value"><input class="field mid" id="f_company" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">직급 / 지위</div>
+          <div class="cell-value"><input class="field mid" id="f_position" type="text" placeholder="과장, 부사장 등"></div>
+          <div class="cell-label">근무지 (지역)</div>
+          <div class="cell-value"><input class="field mid" id="f_worklocation" type="text"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">직장 주소</div>
+          <div class="cell-value"><input class="field wide" id="f_workaddress" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">연봉 (세전)</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="salary" value="3천 미만"> 3천 미만</label>
+            <label class="cb"><input type="checkbox" name="salary" value="3~5천"> 3~5천</label>
+            <label class="cb"><input type="checkbox" name="salary" value="5~7천"> 5~7천</label>
+            <label class="cb"><input type="checkbox" name="salary" value="7천~1억"> 7천~1억</label>
+            <label class="cb"><input type="checkbox" name="salary" value="1억 이상"> 1억 이상</label>
+          </div>
+          <div class="cell-label">재직기간</div>
+          <div class="cell-value"><input class="field short" id="f_tenure" type="text" placeholder="____년 ____개월"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: 신체 및 외모 -->
+    <div class="step" data-step="2">
+      <div class="step-title">3. 신체 및 외모</div>
+      <div class="warn-box" id="warn2"></div>
+      <div class="section-body">
+        <div class="row col2">
+          <div class="cell-label req">키</div>
+          <div class="cell-value"><input class="field xshort" id="f_height" type="text"> cm</div>
+          <div class="cell-label req">체중</div>
+          <div class="cell-value"><input class="field xshort" id="f_weight" type="text"> kg</div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">혈액형</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="blood" value="A형"> A형</label>
+            <label class="cb"><input type="checkbox" name="blood" value="B형"> B형</label>
+            <label class="cb"><input type="checkbox" name="blood" value="O형"> O형</label>
+            <label class="cb"><input type="checkbox" name="blood" value="AB형"> AB형</label>
+          </div>
+          <div class="cell-label">외모 / 스타일</div>
+          <div class="cell-value"><input class="field mid" id="f_style" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">흡연 여부</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="smoke" value="비흡연"> 비흡연</label>
+            <label class="cb"><input type="checkbox" name="smoke" value="흡연"> 흡연</label>
+            <label class="cb"><input type="checkbox" name="smoke" value="금연중"> 금연중</label>
+          </div>
+          <div class="cell-label req">음주 여부</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="drink" value="안함"> 안함</label>
+            <label class="cb"><input type="checkbox" name="drink" value="가끔"> 가끔</label>
+            <label class="cb"><input type="checkbox" name="drink" value="보통"> 보통</label>
+            <label class="cb"><input type="checkbox" name="drink" value="자주"> 자주</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">운전면허</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="license" value="있음"> 있음</label>
+            <label class="cb"><input type="checkbox" name="license" value="없음"> 없음</label>
+          </div>
+          <div class="cell-label">차량 소유</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="car" value="있음"> 있음</label>
+            <label class="cb"><input type="checkbox" name="car" value="없음"> 없음</label>
+            &nbsp;<span style="font-size:11px;color:#888">차종:</span>
+            <input class="field" style="width:90px;font-size:11px" id="f_cartype" type="text" placeholder="예) 제네시스">
+          </div>
+        </div>
+        <div class="row">
+          <div class="cell-label">건강 특이사항</div>
+          <div class="cell-value"><input class="field wide" id="f_health" type="text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: 자산 정보 -->
+    <div class="step" data-step="3">
+      <div class="step-title">4. 자산 정보</div>
+      <div class="warn-box" id="warn3"></div>
+      <div class="section-body">
+        <div class="row">
+          <div class="cell-label req">월평균 소득</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="income" value="300만 미만"> 300만 미만</label>
+            <label class="cb"><input type="checkbox" name="income" value="300~500만"> 300~500만</label>
+            <label class="cb"><input type="checkbox" name="income" value="500~700만"> 500~700만</label>
+            <label class="cb"><input type="checkbox" name="income" value="700만 이상"> 700만 이상</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">부동산 소유</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="realestate" value="없음"> 없음</label>
+            <label class="cb"><input type="checkbox" name="realestate" value="있음"> 있음</label>
+          </div>
+          <div class="cell-label">부동산 규모</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="realestate_size" value="1억 미만"> 1억 미만</label>
+            <label class="cb"><input type="checkbox" name="realestate_size" value="1~3억"> 1~3억</label>
+            <label class="cb"><input type="checkbox" name="realestate_size" value="3~5억"> 3~5억</label>
+            <label class="cb"><input type="checkbox" name="realestate_size" value="5억 이상"> 5억 이상</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">금융자산</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="finance_asset" value="없음"> 없음</label>
+            <label class="cb"><input type="checkbox" name="finance_asset" value="1억 미만"> 1억 미만</label>
+            <label class="cb"><input type="checkbox" name="finance_asset" value="1~3억"> 1~3억</label>
+            <label class="cb"><input type="checkbox" name="finance_asset" value="3억 이상"> 3억 이상</label>
+          </div>
+          <div class="cell-label">기타 자산</div>
+          <div class="cell-value"><input class="field mid" id="f_other_asset" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">거주형태</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="residence_form" value="자가"> 자가</label>
+            <label class="cb"><input type="checkbox" name="residence_form" value="전세"> 전세</label>
+            <label class="cb"><input type="checkbox" name="residence_form" value="월세"> 월세</label>
+            <label class="cb"><input type="checkbox" name="residence_form" value="기타"> 기타</label>
+          </div>
+          <div class="cell-label">거주 지역</div>
+          <div class="cell-value"><input class="field mid" id="f_residence_area" type="text"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">거주 유형</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="residence_type" value="아파트"> 아파트</label>
+            <label class="cb"><input type="checkbox" name="residence_type" value="오피스텔"> 오피스텔</label>
+            <label class="cb"><input type="checkbox" name="residence_type" value="빌라"> 빌라</label>
+            <label class="cb"><input type="checkbox" name="residence_type" value="단독주택"> 단독주택</label>
+            <label class="cb"><input type="checkbox" name="residence_type" value="기타"> 기타</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: 가족사항 -->
+    <div class="step" data-step="4">
+      <div class="step-title">5. 가족사항</div>
+      <div class="warn-box" id="warn4"></div>
+      <div class="section-body">
+        <div class="sub-header">【 부친 (父) 】</div>
+        <div class="row col2">
+          <div class="cell-label">출생년도</div>
+          <div class="cell-value"><input class="field short" id="f_father_birth" type="text" placeholder="____년 (만 ____세)"></div>
+          <div class="cell-label">직업 / 직장</div>
+          <div class="cell-value"><input class="field mid" id="f_father_job" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">최종학력</div>
+          <div class="cell-value"><input class="field mid" id="f_father_edu" type="text"></div>
+          <div class="cell-label">거주지</div>
+          <div class="cell-value"><input class="field mid" id="f_father_addr" type="text"></div>
+        </div>
+        <div class="sub-header">【 모친 (母) 】</div>
+        <div class="row col2">
+          <div class="cell-label">출생년도</div>
+          <div class="cell-value"><input class="field short" id="f_mother_birth" type="text" placeholder="____년 (만 ____세)"></div>
+          <div class="cell-label">직업 / 직장</div>
+          <div class="cell-value"><input class="field mid" id="f_mother_job" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">최종학력</div>
+          <div class="cell-value"><input class="field mid" id="f_mother_edu" type="text"></div>
+          <div class="cell-label">거주지</div>
+          <div class="cell-value"><input class="field mid" id="f_mother_addr" type="text"></div>
+        </div>
+        <div class="sub-header">【 부모님 공통 정보 】</div>
+        <div class="row col2">
+          <div class="cell-label">부모님 상태</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="parents_status" value="건강"> 건강</label>
+            <label class="cb"><input type="checkbox" name="parents_status" value="별거"> 별거</label>
+            <label class="cb"><input type="checkbox" name="parents_status" value="사별"> 사별</label>
+            <label class="cb"><input type="checkbox" name="parents_status" value="이혼"> 이혼</label>
+            <label class="cb"><input type="checkbox" name="parents_status" value="기타"> 기타</label>
+          </div>
+          <div class="cell-label">경제 수준</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="economic_level" value="상"> 상</label>
+            <label class="cb"><input type="checkbox" name="economic_level" value="중상"> 중상</label>
+            <label class="cb"><input type="checkbox" name="economic_level" value="중"> 중</label>
+            <label class="cb"><input type="checkbox" name="economic_level" value="중하"> 중하</label>
+            <label class="cb"><input type="checkbox" name="economic_level" value="하"> 하</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">종교 성향</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="religion_level" value="활동적"> 활동적</label>
+            <label class="cb"><input type="checkbox" name="religion_level" value="보통"> 보통</label>
+            <label class="cb"><input type="checkbox" name="religion_level" value="소극적"> 소극적</label>
+          </div>
+          <div class="cell-label">정치 성향</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="political" value="진보"> 진보</label>
+            <label class="cb"><input type="checkbox" name="political" value="중도"> 중도</label>
+            <label class="cb"><input type="checkbox" name="political" value="보수"> 보수</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">형제 / 자매</div>
+          <div class="cell-value">형제 <input class="field xshort" id="f_brothers" type="text" placeholder="__명"> / 자매 <input class="field xshort" id="f_sisters" type="text" placeholder="__명"></div>
+          <div class="cell-label">부모님 자산</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="parents_asset" value="없음"> 없음</label>
+            <label class="cb"><input type="checkbox" name="parents_asset" value="있음"> 있음</label>
+          </div>
+        </div>
+        <div class="sub-header">【 자녀 정보 — 재혼자 해당 】</div>
+        <div class="row col2">
+          <div class="cell-label">자녀 여부</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="children_exist" value="없음"> 없음</label>
+            <label class="cb"><input type="checkbox" name="children_exist" value="있음"> 있음</label>
+          </div>
+          <div class="cell-label">자녀 수</div>
+          <div class="cell-value"><input class="field xshort" id="f_children_count" type="text" placeholder="__명"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">자녀 나이</div>
+          <div class="cell-value"><input class="field mid" id="f_children_age" type="text"></div>
+          <div class="cell-label">동거 여부</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="children_cohabit" value="동거"> 동거</label>
+            <label class="cb"><input type="checkbox" name="children_cohabit" value="비동거"> 비동거</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: 취미 및 관심사 -->
+    <div class="step" data-step="5">
+      <div class="step-title">6. 취미 및 관심사</div>
+      <div class="warn-box" id="warn5"></div>
+      <div class="section-body">
+        <div class="row">
+          <div class="cell-label">취미 (중복가능)</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="hobby" value="독서"> 독서</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="운동"> 운동</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="요리"> 요리</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="여행"> 여행</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="음악/악기"> 음악/악기</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="영화/드라마"> 영화/드라마</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="등산"> 등산</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="골프"> 골프</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="낚시"> 낚시</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="봉사활동"> 봉사활동</label>
+            <label class="cb"><input type="checkbox" name="hobby" value="기타"> 기타</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">특&nbsp;&nbsp;기</div>
+          <div class="cell-value"><input class="field mid" id="f_talent" type="text"></div>
+          <div class="cell-label">관심 분야</div>
+          <div class="cell-value"><input class="field mid" id="f_interest" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">여행 선호</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="travel_pref" value="국내"> 국내</label>
+            <label class="cb"><input type="checkbox" name="travel_pref" value="해외"> 해외</label>
+            <label class="cb"><input type="checkbox" name="travel_pref" value="둘 다"> 둘 다</label>
+          </div>
+          <div class="cell-label">반려동물</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="pet" value="있음"> 있음</label>
+            <label class="cb"><input type="checkbox" name="pet" value="없음"> 없음</label>
+            <label class="cb"><input type="checkbox" name="pet" value="상관없음"> 상관없음</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6: 희망 배우자 조건 -->
+    <div class="step" data-step="6">
+      <div class="step-title">7. 희망 배우자 조건</div>
+      <div class="warn-box" id="warn6"></div>
+      <div class="section-body">
+        <div class="row col2">
+          <div class="cell-label req">희망 나이</div>
+          <div class="cell-value">만 <input class="field xshort" id="f_desired_age_min" type="text" placeholder="__"> 세 ~ 만 <input class="field xshort" id="f_desired_age_max" type="text" placeholder="__"> 세</div>
+          <div class="cell-label">희망 키</div>
+          <div class="cell-value"><input class="field xshort" id="f_desired_height_min" type="text" placeholder="___"> cm ~ <input class="field xshort" id="f_desired_height_max" type="text" placeholder="___"> cm</div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">희망 학력</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="desired_edu" value="고졸"> 고졸</label>
+            <label class="cb"><input type="checkbox" name="desired_edu" value="전문대졸"> 전문대졸</label>
+            <label class="cb"><input type="checkbox" name="desired_edu" value="대졸"> 대졸</label>
+            <label class="cb"><input type="checkbox" name="desired_edu" value="대학원졸"> 대학원졸</label>
+            <label class="cb"><input type="checkbox" name="desired_edu" value="무관"> 무관</label>
+          </div>
+          <div class="cell-label">희망 직업</div>
+          <div class="cell-value"><input class="field mid" id="f_desired_job" type="text"></div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">희망 종교</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="desired_religion" value="무교"> 무교</label>
+            <label class="cb"><input type="checkbox" name="desired_religion" value="기독교"> 기독교</label>
+            <label class="cb"><input type="checkbox" name="desired_religion" value="불교"> 불교</label>
+            <label class="cb"><input type="checkbox" name="desired_religion" value="천주교"> 천주교</label>
+            <label class="cb"><input type="checkbox" name="desired_religion" value="무관"> 무관</label>
+          </div>
+          <div class="cell-label">소득 수준</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="desired_income" value="무관"> 무관</label>
+            <label class="cb"><input type="checkbox" name="desired_income" value="3천이상"> 3천이상</label>
+            <label class="cb"><input type="checkbox" name="desired_income" value="5천이상"> 5천이상</label>
+            <label class="cb"><input type="checkbox" name="desired_income" value="7천이상"> 7천이상</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">흡연 허용</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="smoke_ok" value="허용"> 허용</label>
+            <label class="cb"><input type="checkbox" name="smoke_ok" value="비허용"> 비허용</label>
+            <label class="cb"><input type="checkbox" name="smoke_ok" value="무관"> 무관</label>
+          </div>
+          <div class="cell-label">음주 허용</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="drink_ok" value="허용"> 허용</label>
+            <label class="cb"><input type="checkbox" name="drink_ok" value="가끔만"> 가끔만</label>
+            <label class="cb"><input type="checkbox" name="drink_ok" value="무관"> 무관</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">재혼자 가능</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="remarry_ok" value="가능"> 가능</label>
+            <label class="cb"><input type="checkbox" name="remarry_ok" value="불가"> 불가</label>
+            <label class="cb"><input type="checkbox" name="remarry_ok" value="조건부"> 조건부</label>
+          </div>
+          <div class="cell-label">자녀있는 분</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="child_ok" value="가능"> 가능</label>
+            <label class="cb"><input type="checkbox" name="child_ok" value="불가"> 불가</label>
+            <label class="cb"><input type="checkbox" name="child_ok" value="조건부"> 조건부</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">외국인 가능</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="foreigner_ok" value="가능"> 가능</label>
+            <label class="cb"><input type="checkbox" name="foreigner_ok" value="불가"> 불가</label>
+          </div>
+          <div class="cell-label">외모 중요도</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="appearance_importance" value="매우중요"> 매우중요</label>
+            <label class="cb"><input type="checkbox" name="appearance_importance" value="중요"> 중요</label>
+            <label class="cb"><input type="checkbox" name="appearance_importance" value="보통"> 보통</label>
+            <label class="cb"><input type="checkbox" name="appearance_importance" value="무관"> 무관</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="cell-label">기타 희망사항</div>
+          <div class="cell-value"><input class="field wide" id="f_etc_wish" type="text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: 자기소개 및 성격 -->
+    <div class="step" data-step="7">
+      <div class="step-title">8. 자기소개 및 성격</div>
+      <div class="warn-box" id="warn7"></div>
+      <div class="section-body">
+        <div class="row">
+          <div class="cell-label">성격 유형</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="personality" value="내향적"> 내향적</label>
+            <label class="cb"><input type="checkbox" name="personality" value="외향적"> 외향적</label>
+            <label class="cb"><input type="checkbox" name="personality" value="균형형"> 균형형</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="cell-label">나의 장점</div>
+          <div class="cell-value"><input class="field wide" id="f_strength" type="text"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">나의 단점</div>
+          <div class="cell-value"><input class="field wide" id="f_weakness" type="text"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label req">자기소개</div>
+          <div class="cell-value tall" style="display:block">
+            <textarea class="field wide" id="f_intro" rows="5" placeholder="자신의 성격, 취미, 특징을 자유롭게 작성해주세요. (최소 200자 권장)"></textarea>
+            <div class="char-counter" id="introCounter">0자 입력됨 (권장 200자 이상)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 8: 가입 경로 -->
+    <div class="step" data-step="8">
+      <div class="step-title">9. 가입 경로 및 기타</div>
+      <div class="warn-box" id="warn8"></div>
+      <div class="section-body">
+        <div class="row">
+          <div class="cell-label">가입 경로</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" name="route" value="지인 소개"> 지인 소개</label>
+            <label class="cb"><input type="checkbox" name="route" value="인터넷 검색"> 인터넷 검색</label>
+            <label class="cb"><input type="checkbox" name="route" value="SNS"> SNS</label>
+            <label class="cb"><input type="checkbox" name="route" value="블로그/카페"> 블로그/카페</label>
+            <label class="cb"><input type="checkbox" name="route" value="방송/언론"> 방송/언론</label>
+            <label class="cb"><input type="checkbox" name="route" value="기존회원 소개"> 기존회원 소개</label>
+            <label class="cb"><input type="checkbox" name="route" value="기타"> 기타</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label">소개자 성명</div>
+          <div class="cell-value"><input class="field mid" id="f_referrer_name" type="text"></div>
+          <div class="cell-label">소개자 연락처</div>
+          <div class="cell-value"><input class="field mid" id="f_referrer_contact" type="text"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">가입 동기 및<br>결혼 계획</div>
+          <div class="cell-value"><input class="field wide" id="f_motivation" type="text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 9: 회원 서약 -->
+    <div class="step" data-step="9">
+      <div class="step-title">10. 회원 서약 및 약정 사항</div>
+      <div class="warn-box" id="warn9"></div>
+      <div class="oath-list">
+        <p>1. 위의 기재 사항은 본인이 작성하거나 본인으로부터 권한을 위임받은 대리인이 작성한 것으로 그 내용이 진실합니다.</p>
+        <p>2. 결혼에 장애가 될 윤리적, 법률적, 의학적인 문제가 없습니다. (동거, 사실혼, 질병 등)</p>
+        <p>3. 위의 기재 사항 및 결혼 관련 개인 정보의 변동이 있을 경우 15일 이내에 회사에 이를 통지하여야 합니다.</p>
+        <p>4. 작성한 서류와 제출한 서류는 회원 기간이 만료되면 마리유 개인정보 보호 규정에 의거하여 처리하는 것에 동의합니다.</p>
+        <p>5. 만남에 타인을 내보내거나 제3자를 동행하는 경우 또는 상대에게 미팅 에티켓에 대한 항의를 2회 이상 받는 경우 회원 자격이 상실될 수 있다는 것에 동의합니다.</p>
+        <p>6. 언급되지 않은 나머지 사항들은 마리유 표준 이용 약관에 따르겠습니다.</p>
+      </div>
+      <div class="section-body">
+        <div class="row">
+          <div class="cell-label req">서약 동의</div>
+          <div class="cell-value">
+            <label class="cb"><input type="checkbox" id="cb_oath_agree"> 위 서약 내용 전체에 동의합니다.</label>
+          </div>
+        </div>
+        <div class="row col2">
+          <div class="cell-label req">작성자</div>
+          <div class="cell-value"><input class="field mid" id="f_writer_name" type="text"></div>
+          <div class="cell-label">본인과의 관계</div>
+          <div class="cell-value"><input class="field mid" id="f_writer_relation" type="text" placeholder="본인 작성 시 '본인'"></div>
+        </div>
+        <div class="row">
+          <div class="cell-label">작성일</div>
+          <div class="cell-value"><input class="field mid" id="f_oath_date" type="date"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 10: 개인정보 동의서 -->
+    <div class="step" data-step="10">
+      <div class="step-title">11. 신원인증, 개인정보 수집 및 이용 동의서</div>
+      <div class="warn-box" id="warn10"></div>
+
+      <div class="consent-box">
+        <div class="consent-title">Ⅰ. 신원인증 관련 서류 제출 및 절차</div>
+        <div class="consent-items">
+          1. 회원은 회사에 결혼 관련 개인정보를 사실대로 제공하며 회사가 요구하는 서류의 원본을 제출하여야 합니다.<br>
+          &nbsp;&nbsp;① 신분증 사본(운전면허증, 여권 포함)  ② 가족관계증명서(상세)  ③ 혼인관계증명서(상세)  ④ 기본증명서(상세)
+          ⑤ 재직증명서  ⑥ 졸업증명서  ⑦ 사진  ⑧ 원천징수영수증  ⑨ 재산세 납세증명서  ⑩ 제적등본<br>
+          2. 신원 인증을 위해 개인정보 변동 시 회원에게 서류 제출을 요구할 수 있으며, 제출 거부 시 서비스 이용을 제한할 수 있습니다.<br>
+          3. 회원은 제출한 증명서류가 거짓이거나 위변조된 경우 즉시 당사에 고지하여야 합니다.
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">위 내용에 대한 설명을 충분히 들었으며, 상기 신원 인증의 내용 및 절차에 동의합니다.</div>
+        <div class="consent-sign">
+          <label class="cb"><input type="radio" name="consent1" value="예"> 예</label>
+          <label class="cb"><input type="radio" name="consent1" value="아니오"> 아니오</label>
+          &nbsp;|&nbsp; 회원명: <input class="field short" id="f_consent1_name" type="text">
+        </div>
+      </div>
+
+      <div class="consent-box">
+        <div class="consent-title">Ⅱ. 개인정보의 수집 및 이용안내</div>
+        <div class="consent-items">
+          1. 수집 이용 목적: 신원인증, 대행서비스 실시, 매칭 서비스 제공<br>
+          2. 수집 항목: 이름, 나이, 성별, 결혼상태, 직업, 이메일, 전화번호, 주소, 체중, 혈액형, 사진, 가족정보, 직업정보, 자산정보<br>
+          3. 보유 및 이용기간: 신원 확인 완료 후 최소 5년간 보유<br>
+          4. 동의 거부 권리: 회원은 개인정보 수집 및 이용 동의를 거부할 수 있으나, 거부 시 서비스 이용에 제한이 있을 수 있습니다.
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">위 내용에 대한 설명을 충분히 들었으며, 상기 개인 정보의 수집 및 이용에 동의합니다.</div>
+        <div class="consent-sign">
+          <label class="cb"><input type="radio" name="consent2" value="예"> 예</label>
+          <label class="cb"><input type="radio" name="consent2" value="아니오"> 아니오</label>
+          &nbsp;|&nbsp; 회원명: <input class="field short" id="f_consent2_name" type="text">
+        </div>
+      </div>
+
+      <div class="consent-box">
+        <div class="consent-title">Ⅲ. 프로필 사진의 수집 및 이용안내</div>
+        <div class="consent-items">
+          1. 수집 이용 목적: 매니저의 추천 심사 및 회원 간 만남 추진을 위한 기본 제공<br>
+          2. 보유 및 이용기간: 결혼중개법 제10조의4 제1항에 따라 5년간 보존<br>
+          3. 동의 거부 권리: 회원은 사진 제공을 거부할 수 있으나, 거부 시 프로필 추천에서 제외될 수 있습니다.
+        </div>
+        <div style="font-weight:600;margin-bottom:8px">위 내용에 대한 설명을 충분히 들었으며, 상기 프로필 사진의 수집 및 이용에 동의합니다.</div>
+        <div class="consent-sign">
+          <label class="cb"><input type="radio" name="consent3" value="예"> 예</label>
+          <label class="cb"><input type="radio" name="consent3" value="아니오"> 아니오</label>
+          &nbsp;|&nbsp; 회원명: <input class="field short" id="f_consent3_name" type="text">
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 11: 최종 확인 -->
+    <div class="step" data-step="11">
+      <div class="step-title">12. 최종 확인</div>
+      <div id="finalWarnArea"></div>
+      <div id="submitResultArea"></div>
+      <div id="summaryArea"></div>
+      <div class="btn-group" style="margin-top:18px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary" id="btnSubmit">✅ 제출하기 (안전하게 저장)</button>
+        <button type="button" class="btn btn-outline" id="btnPrint">🖨️ 인쇄 / PDF로 출력</button>
+        <button type="button" class="btn btn-outline" id="btnDownload">⬇️ 요약 파일 다운로드</button>
+        <button type="button" class="btn btn-secondary" id="btnReset">처음부터 다시 작성</button>
+      </div>
+    </div>
+
+  </form>
+
+  <div class="page-footer">마리유 | 성혼주의 결혼정보 · 만남이 아닌 결혼을 설계합니다</div>
+</div>
+
+<div class="wizard-nav">
+  <div class="wizard-nav-inner">
+    <button type="button" class="btn btn-secondary" id="btnPrev">← 이전</button>
+    <button type="button" class="btn btn-primary" id="btnNext">다음 →</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = "marieu_form_draft_v1";
+  const TOTAL_STEPS = 12;
+  const STEP_TITLES = [
+    "기본 인적사항","학력 및 직업","신체 및 외모","자산 정보","가족사항",
+    "취미 및 관심사","희망 배우자 조건","자기소개 및 성격","가입 경로 및 기타",
+    "회원 서약","개인정보 동의서","최종 확인"
+  ];
+  let currentStep = 0;
+
+  const form = document.getElementById('marieuForm');
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const dotsWrap = document.getElementById('dots');
+  const stepLabel = document.getElementById('stepLabel');
+  const stepPct = document.getElementById('stepPct');
+  const progressFill = document.getElementById('progressFill');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const autosaveIndicator = document.getElementById('autosaveIndicator');
+
+  // ---------- 도트 생성 ----------
+  for (let i=0;i<TOTAL_STEPS;i++){
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.textContent = i+1;
+    d.title = STEP_TITLES[i];
+    d.addEventListener('click', ()=> goToStep(i));
+    dotsWrap.appendChild(d);
+  }
+  const dots = Array.from(dotsWrap.children);
+
+  function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function groupChecked(name){ return document.querySelectorAll(`input[name="${name}"]:checked`).length > 0; }
+  function groupValues(name){ return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(i=>i.value); }
+  function radioValue(name){ const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+
+  // ---------- 단계별 필수항목 검증 ----------
+  const stepValidators = {
+    0: () => {
+      const e = [];
+      if (!val('f_name')) e.push(['성명을 입력해주세요.', 'f_name']);
+      if (!val('f_birth')) e.push(['생년월일을 입력해주세요.', 'f_birth']);
+      if (!groupChecked('gender')) e.push(['성별을 선택해주세요.', null]);
+      if (!groupChecked('marital')) e.push(['혼인상태를 선택해주세요.', null]);
+      if (!val('f_address')) e.push(['주소를 입력해주세요.', 'f_address']);
+      if (!val('f_phone')) e.push(['휴대폰 번호를 입력해주세요.', 'f_phone']);
+      if (!val('f_email')) e.push(['이메일을 입력해주세요.', 'f_email']);
+      return e;
+    },
+    1: () => {
+      const e = [];
+      if (!groupChecked('edu')) e.push(['최종학력을 선택해주세요.', null]);
+      if (!groupChecked('jobtype')) e.push(['직업 구분을 선택해주세요.', null]);
+      if (!groupChecked('salary')) e.push(['연봉(세전)을 선택해주세요.', null]);
+      return e;
+    },
+    2: () => {
+      const e = [];
+      if (!val('f_height')) e.push(['키를 입력해주세요.', 'f_height']);
+      if (!val('f_weight')) e.push(['체중을 입력해주세요.', 'f_weight']);
+      if (!groupChecked('smoke')) e.push(['흡연 여부를 선택해주세요.', null]);
+      if (!groupChecked('drink')) e.push(['음주 여부를 선택해주세요.', null]);
+      return e;
+    },
+    3: () => {
+      const e = [];
+      if (!groupChecked('income')) e.push(['월평균 소득을 선택해주세요.', null]);
+      return e;
+    },
+    4: () => [],
+    5: () => [],
+    6: () => {
+      const e = [];
+      if (!val('f_desired_age_min') || !val('f_desired_age_max')) e.push(['희망 나이 범위를 입력해주세요.', 'f_desired_age_min']);
+      if (!groupChecked('desired_edu')) e.push(['희망 학력을 선택해주세요.', null]);
+      return e;
+    },
+    7: () => {
+      const e = [];
+      const intro = val('f_intro');
+      if (!intro) e.push(['자기소개를 작성해주세요.', 'f_intro']);
+      return e;
+    },
+    8: () => [],
+    9: () => {
+      const e = [];
+      if (!document.getElementById('cb_oath_agree').checked) e.push(['서약 내용에 동의해주세요.', null]);
+      if (!val('f_writer_name')) e.push(['작성자 성명을 입력해주세요.', 'f_writer_name']);
+      return e;
+    },
+    10: () => {
+      const e = [];
+      if (!radioValue('consent1')) e.push(['신원인증 동의 여부를 선택해주세요.', null]);
+      if (!radioValue('consent2')) e.push(['개인정보 수집·이용 동의 여부를 선택해주세요.', null]);
+      if (!radioValue('consent3')) e.push(['프로필 사진 동의 여부를 선택해주세요.', null]);
+      return e;
+    },
+    11: () => []
+  };
+
+  function showWarn(stepIdx, errors){
+    const box = document.getElementById('warn'+stepIdx);
+    if (!box) return;
+    if (errors.length === 0){ box.classList.remove('show'); box.innerHTML=''; return; }
+    box.classList.add('show');
+    box.innerHTML = '<b>⚠ 아래 항목을 확인해주세요 (저장은 가능합니다)</b>' +
+      errors.map(([msg]) => '· ' + msg).join('<br>');
+    // 필드 하이라이트
+    errors.forEach(([,id]) => {
+      if (id){
+        const el = document.getElementById(id);
+        if (el){ const row = el.closest('.row'); if(row) row.classList.add('invalid'); }
+      }
+    });
+  }
+
+  function clearInvalid(stepEl){
+    stepEl.querySelectorAll('.row.invalid').forEach(r=>r.classList.remove('invalid'));
+  }
+
+  // ---------- 단계 이동 ----------
+  function showStep(idx){
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === idx));
+    stepLabel.textContent = `STEP ${idx+1} / ${TOTAL_STEPS} — ${STEP_TITLES[idx]}`;
+    const pct = Math.round(((idx+1)/TOTAL_STEPS)*100);
+    stepPct.textContent = pct + '%';
+    progressFill.style.width = pct + '%';
+    dots.forEach((d,i)=>{
+      d.classList.toggle('current', i===idx);
+      d.classList.toggle('done', i<idx);
+    });
+    btnPrev.disabled = (idx === 0);
+    if (idx === TOTAL_STEPS - 1){
+      btnNext.style.display = 'none';
+      document.querySelector('.wizard-nav').style.display = (idx===TOTAL_STEPS-1) ? 'none' : 'flex';
+      buildSummary();
+    } else {
+      btnNext.style.display = 'inline-block';
+      btnNext.textContent = (idx === TOTAL_STEPS - 2) ? '최종 확인 →' : '다음 →';
+      document.querySelector('.wizard-nav').style.display = 'flex';
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+    currentStep = idx;
+  }
+
+  function goToStep(idx){
+    saveDraft();
+    showStep(idx);
+  }
+
+  btnNext.addEventListener('click', () => {
+    const stepEl = steps[currentStep];
+    clearInvalid(stepEl);
+    const validator = stepValidators[currentStep];
+    const errors = validator ? validator() : [];
+    showWarn(currentStep, errors);
+    saveDraft();
+    if (currentStep < TOTAL_STEPS - 1) showStep(currentStep + 1);
+  });
+
+  btnPrev.addEventListener('click', () => {
+    saveDraft();
+    if (currentStep > 0) showStep(currentStep - 1);
+  });
+
+  // ---------- 자동 임시저장 ----------
+  function saveDraft(){
+    const data = {};
+    form.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el=>{
+      if (el.id) data[el.id] = el.value;
+    });
+    form.querySelectorAll('input[type=checkbox]').forEach(el=>{
+      const key = el.id || (el.name + '::' + el.value);
+      data[key] = el.checked;
+    });
+    form.querySelectorAll('input[type=radio]').forEach(el=>{
+      if (el.checked) data['radio::'+el.name] = el.value;
+    });
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      const now = new Date();
+      autosaveIndicator.textContent = '✓ 임시저장됨 ' + now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      autosaveIndicator.classList.add('saved');
+    } catch(e) { /* ignore */ }
+  }
+
+  function loadDraft(){
+    let raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e){ return; }
+    if (!raw) return;
+    let data;
+    try { data = JSON.parse(raw); } catch(e){ return; }
+
+    form.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el=>{
+      if (el.id && data[el.id] !== undefined) el.value = data[el.id];
+    });
+    form.querySelectorAll('input[type=checkbox]').forEach(el=>{
+      const key = el.id || (el.name + '::' + el.value);
+      if (data[key] !== undefined) el.checked = data[key];
+    });
+    form.querySelectorAll('input[type=radio]').forEach(el=>{
+      const k = 'radio::'+el.name;
+      if (data[k] !== undefined && data[k] === el.value) el.checked = true;
+    });
+    updateIntroCounter();
+    autosaveIndicator.textContent = '이전 작성 내용을 불러왔습니다.';
+    autosaveIndicator.classList.add('saved');
+  }
+
+  let saveTimer = null;
+  form.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveDraft, 500);
+    updateIntroCounter();
+  });
+  form.addEventListener('change', saveDraft);
+
+  // 입력 시 invalid 표시 제거
+  form.addEventListener('input', (ev)=>{
+    const row = ev.target.closest('.row');
+    if (row) row.classList.remove('invalid');
+  });
+  form.addEventListener('change', (ev)=>{
+    const row = ev.target.closest('.row');
+    if (row) row.classList.remove('invalid');
+  });
+
+  // ---------- 자기소개 글자수 카운터 ----------
+  function updateIntroCounter(){
+    const intro = document.getElementById('f_intro');
+    const counter = document.getElementById('introCounter');
+    if (!intro || !counter) return;
+    const len = intro.value.length;
+    counter.textContent = `${len}자 입력됨 (권장 200자 이상)`;
+    counter.classList.toggle('ok', len >= 200);
+  }
+
+  // ---------- 최종 확인 요약 ----------
+  const FIELD_MAP = [
+    { title: '1. 기본 인적사항', items: [
+      ['성명','f_name'],['생년월일','f_birth'],['성별','group:gender'],['혼인상태','group:marital'],
+      ['종교','group:religion'],['주소','f_address'],['휴대폰','f_phone'],['이메일','f_email']
+    ]},
+    { title: '2. 학력 및 직업', items: [
+      ['최종학력','group:edu'],['전공학과','f_major'],['학교명','f_school'],['졸업년도','f_gradyear'],
+      ['직업구분','group:jobtype'],['직장명','f_company'],['직급/지위','f_position'],['근무지','f_worklocation'],
+      ['직장주소','f_workaddress'],['연봉','group:salary'],['재직기간','f_tenure']
+    ]},
+    { title: '3. 신체 및 외모', items: [
+      ['키','f_height'],['체중','f_weight'],['혈액형','group:blood'],['외모/스타일','f_style'],
+      ['흡연여부','group:smoke'],['음주여부','group:drink'],['운전면허','group:license'],
+      ['차량소유','group:car'],['차종','f_cartype'],['건강특이사항','f_health']
+    ]},
+    { title: '4. 자산 정보', items: [
+      ['월평균소득','group:income'],['부동산소유','group:realestate'],['부동산규모','group:realestate_size'],
+      ['금융자산','group:finance_asset'],['기타자산','f_other_asset'],['거주형태','group:residence_form'],
+      ['거주지역','f_residence_area'],['거주유형','group:residence_type']
+    ]},
+    { title: '5. 가족사항', items: [
+      ['부친출생년도','f_father_birth'],['부친직업','f_father_job'],['부친학력','f_father_edu'],['부친거주지','f_father_addr'],
+      ['모친출생년도','f_mother_birth'],['모친직업','f_mother_job'],['모친학력','f_mother_edu'],['모친거주지','f_mother_addr'],
+      ['부모님상태','group:parents_status'],['경제수준','group:economic_level'],['종교성향','group:religion_level'],
+      ['정치성향','group:political'],['형제','f_brothers'],['자매','f_sisters'],['부모님자산','group:parents_asset'],
+      ['자녀여부','group:children_exist'],['자녀수','f_children_count'],['자녀나이','f_children_age'],['동거여부','group:children_cohabit']
+    ]},
+    { title: '6. 취미 및 관심사', items: [
+      ['취미','group:hobby'],['특기','f_talent'],['관심분야','f_interest'],['여행선호','group:travel_pref'],['반려동물','group:pet']
+    ]},
+    { title: '7. 희망 배우자 조건', items: [
+      ['희망나이(최소)','f_desired_age_min'],['희망나이(최대)','f_desired_age_max'],
+      ['희망키(최소)','f_desired_height_min'],['희망키(최대)','f_desired_height_max'],
+      ['희망학력','group:desired_edu'],['희망직업','f_desired_job'],['희망종교','group:desired_religion'],
+      ['소득수준','group:desired_income'],['흡연허용','group:smoke_ok'],['음주허용','group:drink_ok'],
+      ['재혼자가능','group:remarry_ok'],['자녀있는분','group:child_ok'],['외국인가능','group:foreigner_ok'],
+      ['외모중요도','group:appearance_importance'],['기타희망사항','f_etc_wish']
+    ]},
+    { title: '8. 자기소개 및 성격', items: [
+      ['성격유형','group:personality'],['장점','f_strength'],['단점','f_weakness'],['자기소개','f_intro']
+    ]},
+    { title: '9. 가입 경로 및 기타', items: [
+      ['가입경로','group:route'],['소개자성명','f_referrer_name'],['소개자연락처','f_referrer_contact'],['가입동기','f_motivation']
+    ]},
+    { title: '10. 회원 서약', items: [
+      ['서약동의','checkbox:cb_oath_agree'],['작성자','f_writer_name'],['관계','f_writer_relation'],['작성일','f_oath_date']
+    ]},
+    { title: '11. 개인정보 동의서', items: [
+      ['신원인증동의','radio:consent1'],['개인정보동의','radio:consent2'],['프로필사진동의','radio:consent3']
+    ]},
+  ];
+
+  function getFieldValue(ref){
+    if (ref.startsWith('group:')) return groupValues(ref.slice(6)).join(', ');
+    if (ref.startsWith('radio:')) return radioValue(ref.slice(6));
+    if (ref.startsWith('checkbox:')){
+      const el = document.getElementById(ref.slice(9));
+      return el && el.checked ? '동의함' : '';
+    }
+    return val(ref);
+  }
+
+  function buildSummary(){
+    const area = document.getElementById('summaryArea');
+    let html = '';
+    FIELD_MAP.forEach(section => {
+      html += `<div class="summary-section"><h4>${section.title}</h4>`;
+      section.items.forEach(([label, ref]) => {
+        const v = getFieldValue(ref);
+        html += `<div class="summary-row"><div class="k">${label}</div><div class="v">${v ? escapeHtml(v) : '<span class="summary-missing">미입력</span>'}</div></div>`;
+      });
+      html += `</div>`;
+    });
+    area.innerHTML = html;
+
+    // 전체 필수항목 재검증
+    const warnArea = document.getElementById('finalWarnArea');
+    let allErrors = [];
+    for (let i=0;i<=10;i++){
+      const v = stepValidators[i];
+      if (!v) continue;
+      const errs = v();
+      if (errs.length) allErrors.push({step:i, errs});
+    }
+    if (allErrors.length === 0){
+      warnArea.innerHTML = '<div class="final-ok">✓ 모든 필수 항목이 입력되었습니다. 인쇄 또는 다운로드를 진행하세요.</div>';
+    } else {
+      let html2 = '<div class="final-warn"><b>⚠ 아직 입력되지 않은 필수 항목이 있습니다</b>';
+      allErrors.forEach(({step, errs})=>{
+        html2 += `<div style="margin-top:6px"><span class="jump" data-jump="${step}">[${STEP_TITLES[step]} 단계로 이동]</span><br>` +
+          errs.map(([msg])=>'· '+msg).join('<br>') + `</div>`;
+      });
+      html2 += '</div>';
+      warnArea.innerHTML = html2;
+      warnArea.querySelectorAll('.jump').forEach(el=>{
+        el.addEventListener('click', ()=> goToStep(Number(el.dataset.jump)));
+      });
+    }
+  }
+
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---------- 전체 폼 데이터 수집 (Supabase 제출용) ----------
+  function collectFormData(){
+    const data = {};
+    form.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el=>{
+      if (el.id) data[el.id] = el.value.trim();
+    });
+    const groupNames = new Set();
+    form.querySelectorAll('input[type=checkbox][name]').forEach(el=> groupNames.add(el.name));
+    groupNames.forEach(name => { data[name] = groupValues(name); });
+    form.querySelectorAll('input[type=checkbox]:not([name])').forEach(el=>{
+      if (el.id) data[el.id] = el.checked;
+    });
+    const radioNames = new Set();
+    form.querySelectorAll('input[type=radio][name]').forEach(el=> radioNames.add(el.name));
+    radioNames.forEach(name => { data[name] = radioValue(name); });
+    return data;
+  }
+
+  // ---------- Supabase로 제출하기 ----------
+  const btnSubmit = document.getElementById('btnSubmit');
+  const submitResultArea = document.getElementById('submitResultArea');
+
+  btnSubmit.addEventListener('click', async () => {
+    submitResultArea.innerHTML = '';
+    const originalText = btnSubmit.textContent;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = '제출 중...';
+    try {
+      const payload = collectFormData();
+      const res = await fetch('/.netlify/functions/submit-application', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        throw new Error(result.error || '알 수 없는 오류가 발생했습니다.');
+      }
+      submitResultArea.innerHTML =
+        `<div class="final-ok">✓ 제출이 완료되었습니다. (접수번호: ${result.id.slice(0,8)}, ${new Date(result.created_at).toLocaleString('ko-KR')})<br>` +
+        `입력하신 정보는 암호화되어 안전하게 저장되었습니다.</div>`;
+      saveDraft();
+    } catch (e) {
+      submitResultArea.innerHTML = `<div class="final-warn"><b>⚠ 제출에 실패했습니다</b>${escapeHtml(e.message)}<br>잠시 후 다시 시도하거나, 관리자에게 문의해주세요. (작성하신 내용은 임시저장되어 있으니 안심하세요.)</div>`;
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = originalText;
+    }
+  });
+
+  // ---------- 인쇄 ----------
+  document.getElementById('btnPrint').addEventListener('click', () => {
+    window.print();
+  });
+
+  // ---------- 요약 다운로드 ----------
+  document.getElementById('btnDownload').addEventListener('click', () => {
+    let text = `=== MarieU 회원가입 신청서 요약 ===\n`;
+    text += `작성일시: ${new Date().toLocaleString('ko-KR')}\n\n`;
+    FIELD_MAP.forEach(section => {
+      text += `--- ${section.title} ---\n`;
+      section.items.forEach(([label, ref]) => {
+        const v = getFieldValue(ref);
+        text += `${label}: ${v || '(미입력)'}\n`;
+      });
+      text += `\n`;
+    });
+    const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const name = val('f_name') || '회원';
+    a.href = url;
+    a.download = `마리유_회원가입신청서_${name}_요약.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- 초기화 ----------
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (!confirm('작성한 모든 내용이 삭제됩니다. 정말 초기화하시겠습니까?')) return;
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+    form.reset();
+    updateIntroCounter();
+    autosaveIndicator.textContent = '초기화되었습니다.';
+    autosaveIndicator.classList.remove('saved');
+    goToStep(0);
+  });
+
+  // ---------- 초기 로드 ----------
+  loadDraft();
+  showStep(0);
+})();
+</script>
+
+</body>
+</html>
