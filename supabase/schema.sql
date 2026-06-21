@@ -29,3 +29,27 @@ alter table applications enable row level security;
 
 -- (참고) 정책을 추가하지 않은 상태 = 기본적으로 모든 접근 거부.
 -- 이것이 의도된 동작입니다. 외부에서 누구도 이 표를 직접 읽거나 쓸 수 없습니다.
+
+
+-- ============================================================
+-- 준회원(문의했지만 정식 가입은 하지 않은 분) 리스트
+-- 관리자 페이지(admin.html)에서 직접 추가/수정/삭제합니다.
+-- ============================================================
+
+create table if not exists prospects (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+
+  name   text not null,
+  phone  text,
+  gender text,
+  age    text,
+  region text,
+  job    text,
+  note   text
+);
+
+alter table prospects enable row level security;
+-- applications와 동일하게, 정책을 추가하지 않으므로 service_role 키를 사용하는
+-- Netlify Function을 통해서만 접근 가능합니다.

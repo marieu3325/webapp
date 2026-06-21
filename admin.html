@@ -3,33 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MarieU 관리자 - 제출 목록</title>
+<title>MarieU 관리자</title>
 <style>
   * { box-sizing: border-box; margin:0; padding:0; }
-  body { font-family: 'Malgun Gothic','맑은 고딕', sans-serif; background:#f4f4f4; color:#222; padding:24px 16px; }
-  .wrap { max-width: 1000px; margin: 0 auto; }
+  body { font-family: 'Malgun Gothic','맑은 고딕', sans-serif; background:#f4f4f4; color:#222; padding:24px 16px 60px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
   .card { background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.1); padding:24px; margin-bottom:18px; }
   h1 { color:#B87340; font-size:22px; margin-bottom:6px; }
+  h2 { color:#B87340; font-size:16px; margin-bottom:10px; }
   .sub { color:#888; font-size:12px; margin-bottom:18px; }
   .login-row { display:flex; gap:10px; }
-  input[type=password], input[type=text] {
-    flex:1; padding:10px 12px; border:1.5px solid #ddd; border-radius:8px; font-size:13px; outline:none;
+  input[type=password], input[type=text], input[type=number], select, textarea {
+    padding:9px 11px; border:1.5px solid #ddd; border-radius:8px; font-size:13px; outline:none;
+    font-family:inherit;
   }
-  input[type=password]:focus, input[type=text]:focus { border-color:#B87340; }
+  input:focus, select:focus, textarea:focus { border-color:#B87340; }
+  .login-row input { flex:1; }
   button {
     background:#B87340; color:#fff; border:none; border-radius:8px;
     padding:10px 18px; font-size:13px; font-weight:700; cursor:pointer;
   }
   button:hover { opacity:.88; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
   button.secondary { background:#f0e3d6; color:#5a4030; }
+  button.danger { background:#fff; color:#c0392b; border:1.5px solid #c0392b; }
   .error { color:#c0392b; font-size:12px; margin-top:8px; }
   table { width:100%; border-collapse: collapse; font-size:12.5px; }
   th, td { padding:8px 10px; border-bottom:1px solid #eee; text-align:left; vertical-align:top; }
   th { background:#f5f0eb; color:#5a4030; position: sticky; top:0; }
   tr:hover { background:#FDF8F3; }
-  .detail-btn { background:#fff; color:#B87340; border:1.5px solid #B87340; padding:4px 10px; font-size:11px; border-radius:6px; cursor:pointer; }
+  .detail-btn, .edit-btn { background:#fff; color:#B87340; border:1.5px solid #B87340; padding:4px 10px; font-size:11px; border-radius:6px; cursor:pointer; }
+  .del-btn { background:#fff; color:#c0392b; border:1.5px solid #c0392b; padding:4px 10px; font-size:11px; border-radius:6px; cursor:pointer; margin-left:4px; }
   .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
   .count { color:#888; font-size:12.5px; }
+
+  /* 탭 */
+  .tabs { display:flex; gap:8px; margin-bottom:18px; }
+  .tab-btn {
+    background:#f0e3d6; color:#5a4030; border:none; border-radius:10px 10px 0 0;
+    padding:10px 20px; font-size:13.5px; font-weight:700; cursor:pointer; opacity:.6;
+  }
+  .tab-btn.active { background:#B87340; color:#fff; opacity:1; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* 준회원 입력 폼 */
+  .prospect-form { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:14px; }
+  .prospect-form .full { grid-column: 1 / -1; }
+  .prospect-form label { font-size:11.5px; color:#888; display:block; margin-bottom:3px; }
+  .prospect-form input, .prospect-form select { width:100%; }
+  .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+
   .modal-bg {
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
     align-items:center; justify-content:center; z-index:200; padding:20px;
@@ -41,7 +65,6 @@
   .modal .k { width:140px; color:#888; flex-shrink:0; }
   .modal .v { color:#222; word-break: break-all; }
   .modal-close { margin-top:14px; }
-  #hidden-area { display:none; }
 </style>
 </head>
 <body>
@@ -49,32 +72,103 @@
 
   <div class="card" id="loginCard">
     <h1>MarieU 관리자</h1>
-    <div class="sub">제출된 신청서를 조회합니다. 관리자 비밀번호를 입력하세요.</div>
+    <div class="sub">회원 / 준회원 목록을 관리합니다. 관리자 비밀번호를 입력하세요.</div>
     <div class="login-row">
       <input type="password" id="pwInput" placeholder="관리자 비밀번호">
-      <button id="btnLogin">조회</button>
+      <button id="btnLogin">로그인</button>
     </div>
     <div class="error" id="loginError"></div>
   </div>
 
-  <div class="card" id="listCard" style="display:none">
-    <div class="toolbar">
-      <div>
-        <h1 style="font-size:18px">제출된 신청서 목록</h1>
-        <div class="count" id="countText"></div>
+  <div id="mainArea" style="display:none">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabBtnMembers">회원리스트</button>
+      <button class="tab-btn" id="tabBtnProspects">준회원리스트</button>
+      <div style="flex:1"></div>
+      <button class="secondary" id="btnLogout">로그아웃</button>
+    </div>
+
+    <!-- 회원리스트 -->
+    <div class="card tab-panel active" id="panelMembers">
+      <div class="toolbar">
+        <div>
+          <h2>정식 회원 (가입 신청 완료)</h2>
+          <div class="count" id="memberCountText"></div>
+        </div>
+        <button class="secondary" id="btnRefreshMembers">새로고침</button>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="secondary" id="btnRefresh">새로고침</button>
-        <button class="secondary" id="btnLogout">로그아웃</button>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>제출일시</th><th>성명</th><th>휴대폰</th><th>이메일</th><th></th></tr>
+          </thead>
+          <tbody id="memberTbody"></tbody>
+        </table>
       </div>
     </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead>
-          <tr><th>제출일시</th><th>성명</th><th>휴대폰</th><th>이메일</th><th></th></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+
+    <!-- 준회원리스트 -->
+    <div class="card tab-panel" id="panelProspects">
+      <h2 id="prospectFormTitle">준회원 추가</h2>
+      <div class="sub">문의는 왔지만 정식 가입(신청서 제출)은 하지 않은 분의 정보를 기록합니다.</div>
+      <input type="hidden" id="pf_id">
+      <div class="prospect-form">
+        <div>
+          <label>이름 *</label>
+          <input type="text" id="pf_name">
+        </div>
+        <div>
+          <label>전화번호</label>
+          <input type="text" id="pf_phone" placeholder="010-0000-0000">
+        </div>
+        <div>
+          <label>성별</label>
+          <select id="pf_gender">
+            <option value="">선택안함</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+          </select>
+        </div>
+        <div>
+          <label>나이</label>
+          <input type="text" id="pf_age" placeholder="예: 32">
+        </div>
+        <div>
+          <label>지역</label>
+          <input type="text" id="pf_region" placeholder="예: 서울 강남구">
+        </div>
+        <div>
+          <label>직업</label>
+          <input type="text" id="pf_job">
+        </div>
+        <div class="full">
+          <label>비고</label>
+          <textarea id="pf_note" rows="2" style="width:100%"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="secondary" id="btnCancelEdit" style="display:none">취소</button>
+        <button id="btnSaveProspect">추가하기</button>
+      </div>
+      <div class="error" id="prospectError"></div>
+
+      <hr style="border:none; border-top:1px solid #eee; margin:18px 0">
+
+      <div class="toolbar">
+        <div>
+          <h2 style="margin-bottom:0">준회원 목록</h2>
+          <div class="count" id="prospectCountText"></div>
+        </div>
+        <button class="secondary" id="btnRefreshProspects">새로고침</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>등록일</th><th>이름</th><th>전화번호</th><th>성별</th><th>나이</th><th>지역</th><th>직업</th><th>비고</th><th></th></tr>
+          </thead>
+          <tbody id="prospectTbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -92,27 +186,80 @@
 (function(){
   let adminPassword = '';
   let applications = [];
+  let prospects = [];
 
   const loginCard = document.getElementById('loginCard');
-  const listCard = document.getElementById('listCard');
+  const mainArea = document.getElementById('mainArea');
   const pwInput = document.getElementById('pwInput');
   const loginError = document.getElementById('loginError');
 
-  async function fetchList(){
-    loginError.textContent = '';
-    const res = await fetch('/.netlify/functions/list-applications', {
-      headers: { 'x-admin-password': adminPassword }
-    });
-    const result = await res.json();
-    if (!res.ok || !result.ok){
-      throw new Error(result.error || '조회 실패');
-    }
-    return result.applications;
+  function escapeHtml(str){
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function renderList(){
-    document.getElementById('countText').textContent = `총 ${applications.length}건`;
-    const tbody = document.getElementById('tbody');
+  async function apiGet(fn){
+    const res = await fetch('/.netlify/functions/' + fn, { headers: { 'x-admin-password': adminPassword } });
+    const result = await res.json();
+    if (!res.ok || !result.ok) throw new Error(result.error || '조회 실패');
+    return result;
+  }
+  async function apiPost(fn, body){
+    const res = await fetch('/.netlify/functions/' + fn, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': adminPassword },
+      body: JSON.stringify(body || {}),
+    });
+    const result = await res.json();
+    if (!res.ok || !result.ok) throw new Error(result.error || '요청 실패');
+    return result;
+  }
+
+  // ---------- 탭 ----------
+  const tabBtnMembers = document.getElementById('tabBtnMembers');
+  const tabBtnProspects = document.getElementById('tabBtnProspects');
+  const panelMembers = document.getElementById('panelMembers');
+  const panelProspects = document.getElementById('panelProspects');
+
+  tabBtnMembers.addEventListener('click', () => {
+    tabBtnMembers.classList.add('active'); tabBtnProspects.classList.remove('active');
+    panelMembers.classList.add('active'); panelProspects.classList.remove('active');
+  });
+  tabBtnProspects.addEventListener('click', () => {
+    tabBtnProspects.classList.add('active'); tabBtnMembers.classList.remove('active');
+    panelProspects.classList.add('active'); panelMembers.classList.remove('active');
+  });
+
+  // ---------- 로그인 ----------
+  document.getElementById('btnLogin').addEventListener('click', async ()=>{
+    adminPassword = pwInput.value;
+    if (!adminPassword){ loginError.textContent = '비밀번호를 입력하세요.'; return; }
+    loginError.textContent = '';
+    try {
+      const r1 = await apiGet('list-applications');
+      applications = r1.applications;
+      const r2 = await apiGet('list-prospects');
+      prospects = r2.prospects;
+      loginCard.style.display = 'none';
+      mainArea.style.display = 'block';
+      renderMembers();
+      renderProspects();
+    } catch(e){
+      loginError.textContent = e.message;
+    }
+  });
+  pwInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') document.getElementById('btnLogin').click(); });
+
+  document.getElementById('btnLogout').addEventListener('click', ()=>{
+    adminPassword = ''; applications = []; prospects = [];
+    pwInput.value = '';
+    mainArea.style.display = 'none';
+    loginCard.style.display = 'block';
+  });
+
+  // ---------- 회원리스트 ----------
+  function renderMembers(){
+    document.getElementById('memberCountText').textContent = `총 ${applications.length}건`;
+    const tbody = document.getElementById('memberTbody');
     tbody.innerHTML = applications.map((a, idx) => `
       <tr>
         <td>${new Date(a.created_at).toLocaleString('ko-KR')}</td>
@@ -125,10 +272,6 @@
     tbody.querySelectorAll('.detail-btn').forEach(btn=>{
       btn.addEventListener('click', ()=> showDetail(Number(btn.dataset.idx)));
     });
-  }
-
-  function escapeHtml(str){
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function showDetail(idx){
@@ -148,43 +291,120 @@
     }
     document.getElementById('modalBg').classList.add('show');
   }
-
   document.getElementById('btnCloseModal').addEventListener('click', ()=>{
     document.getElementById('modalBg').classList.remove('show');
   });
 
-  document.getElementById('btnLogin').addEventListener('click', async ()=>{
-    adminPassword = pwInput.value;
-    if (!adminPassword){ loginError.textContent = '비밀번호를 입력하세요.'; return; }
+  document.getElementById('btnRefreshMembers').addEventListener('click', async ()=>{
+    try { applications = (await apiGet('list-applications')).applications; renderMembers(); }
+    catch(e){ alert(e.message); }
+  });
+
+  // ---------- 준회원리스트 ----------
+  const pf_id = document.getElementById('pf_id');
+  const pf_name = document.getElementById('pf_name');
+  const pf_phone = document.getElementById('pf_phone');
+  const pf_gender = document.getElementById('pf_gender');
+  const pf_age = document.getElementById('pf_age');
+  const pf_region = document.getElementById('pf_region');
+  const pf_job = document.getElementById('pf_job');
+  const pf_note = document.getElementById('pf_note');
+  const prospectError = document.getElementById('prospectError');
+  const btnSaveProspect = document.getElementById('btnSaveProspect');
+  const btnCancelEdit = document.getElementById('btnCancelEdit');
+  const prospectFormTitle = document.getElementById('prospectFormTitle');
+
+  function resetProspectForm(){
+    pf_id.value = '';
+    pf_name.value = ''; pf_phone.value = ''; pf_gender.value = '';
+    pf_age.value = ''; pf_region.value = ''; pf_job.value = ''; pf_note.value = '';
+    prospectError.textContent = '';
+    btnSaveProspect.textContent = '추가하기';
+    btnCancelEdit.style.display = 'none';
+    prospectFormTitle.textContent = '준회원 추가';
+  }
+
+  function renderProspects(){
+    document.getElementById('prospectCountText').textContent = `총 ${prospects.length}명`;
+    const tbody = document.getElementById('prospectTbody');
+    tbody.innerHTML = prospects.map((p, idx) => `
+      <tr>
+        <td>${new Date(p.created_at).toLocaleDateString('ko-KR')}</td>
+        <td>${escapeHtml(p.name||'')}</td>
+        <td>${escapeHtml(p.phone||'')}</td>
+        <td>${escapeHtml(p.gender||'')}</td>
+        <td>${escapeHtml(p.age||'')}</td>
+        <td>${escapeHtml(p.region||'')}</td>
+        <td>${escapeHtml(p.job||'')}</td>
+        <td>${escapeHtml(p.note||'')}</td>
+        <td style="white-space:nowrap">
+          <button class="edit-btn" data-idx="${idx}">수정</button>
+          <button class="del-btn" data-idx="${idx}">삭제</button>
+        </td>
+      </tr>
+    `).join('');
+    tbody.querySelectorAll('.edit-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> startEditProspect(Number(btn.dataset.idx)));
+    });
+    tbody.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> deleteProspect(Number(btn.dataset.idx)));
+    });
+  }
+
+  function startEditProspect(idx){
+    const p = prospects[idx];
+    pf_id.value = p.id;
+    pf_name.value = p.name || '';
+    pf_phone.value = p.phone || '';
+    pf_gender.value = p.gender || '';
+    pf_age.value = p.age || '';
+    pf_region.value = p.region || '';
+    pf_job.value = p.job || '';
+    pf_note.value = p.note || '';
+    btnSaveProspect.textContent = '수정 완료';
+    btnCancelEdit.style.display = 'inline-block';
+    prospectFormTitle.textContent = '준회원 정보 수정';
+    pf_name.focus();
+    document.getElementById('panelProspects').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  btnCancelEdit.addEventListener('click', resetProspectForm);
+
+  btnSaveProspect.addEventListener('click', async ()=>{
+    prospectError.textContent = '';
+    if (!pf_name.value.trim()){ prospectError.textContent = '이름은 필수입니다.'; return; }
+    btnSaveProspect.disabled = true;
     try {
-      applications = await fetchList();
-      loginCard.style.display = 'none';
-      listCard.style.display = 'block';
-      renderList();
+      await apiPost('save-prospect', {
+        id: pf_id.value || undefined,
+        name: pf_name.value, phone: pf_phone.value, gender: pf_gender.value,
+        age: pf_age.value, region: pf_region.value, job: pf_job.value, note: pf_note.value,
+      });
+      prospects = (await apiGet('list-prospects')).prospects;
+      renderProspects();
+      resetProspectForm();
     } catch(e){
-      loginError.textContent = e.message;
+      prospectError.textContent = e.message;
+    } finally {
+      btnSaveProspect.disabled = false;
     }
   });
 
-  pwInput.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter') document.getElementById('btnLogin').click();
-  });
-
-  document.getElementById('btnRefresh').addEventListener('click', async ()=>{
+  async function deleteProspect(idx){
+    const p = prospects[idx];
+    if (!confirm(`'${p.name}' 항목을 삭제하시겠습니까?`)) return;
     try {
-      applications = await fetchList();
-      renderList();
+      await apiPost('delete-prospect', { id: p.id });
+      prospects = (await apiGet('list-prospects')).prospects;
+      renderProspects();
     } catch(e){
       alert(e.message);
     }
-  });
+  }
 
-  document.getElementById('btnLogout').addEventListener('click', ()=>{
-    adminPassword = '';
-    applications = [];
-    pwInput.value = '';
-    listCard.style.display = 'none';
-    loginCard.style.display = 'block';
+  document.getElementById('btnRefreshProspects').addEventListener('click', async ()=>{
+    try { prospects = (await apiGet('list-prospects')).prospects; renderProspects(); }
+    catch(e){ alert(e.message); }
   });
 })();
 </script>
