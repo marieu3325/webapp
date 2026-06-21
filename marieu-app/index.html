@@ -180,6 +180,7 @@
   .field.mid { width: 160px; }
   .field.short { width: 90px; }
   .field.xshort { width: 60px; }
+  .field[readonly] { background: #f7f5f2; color: #888; cursor: default; }
 
   textarea.field {
     border: 1px solid #ccc; border-radius: 8px; padding: 8px; resize: vertical;
@@ -261,12 +262,14 @@
     .step:last-child { page-break-after: auto; }
   }
 </style>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
 <div class="app">
 
-  <div class="app-header">
+  <div class="app-header" style="position:relative;">
+    <button type="button" class="btn btn-outline" id="btnGoHome" title="처음 화면(1단계)으로 이동" style="position:absolute; top:14px; right:14px; padding:6px 12px; font-size:11.5px;">🏠 처음 화면</button>
     <div class="brand">MarieU</div>
     <div class="subtitle">회원가입 신청서 — 온라인 작성</div>
     <div class="desc">
@@ -331,7 +334,14 @@
         </div>
         <div class="row">
           <div class="cell-label req">주&nbsp;&nbsp;소</div>
-          <div class="cell-value"><input class="field wide" id="f_address" type="text"></div>
+          <div class="cell-value" style="flex-direction:column; align-items:stretch; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input class="field" style="width:100px" id="f_zonecode" type="text" placeholder="우편번호" readonly>
+              <button type="button" class="btn btn-outline" id="btnSearchAddress" style="padding:6px 14px; font-size:12px; flex-shrink:0;">🔍 주소 검색</button>
+            </div>
+            <input class="field wide" id="f_address" type="text" placeholder="주소 검색 버튼을 눌러주세요" readonly>
+            <input class="field wide" id="f_address_detail" type="text" placeholder="상세주소 (동/호수 등) 직접 입력">
+          </div>
         </div>
         <div class="row col2">
           <div class="cell-label req">휴대폰</div>
@@ -1089,6 +1099,16 @@
     if (currentStep > 0) showStep(currentStep - 1);
   });
 
+  // ---------- 처음 화면으로 이동 (데이터는 유지) ----------
+  const btnGoHome = document.getElementById('btnGoHome');
+  if (btnGoHome){
+    btnGoHome.addEventListener('click', () => {
+      if (currentStep === 0) return;
+      saveDraft();
+      showStep(0);
+    });
+  }
+
   // ---------- 자동 임시저장 ----------
   function saveDraft(){
     const data = {};
@@ -1161,11 +1181,35 @@
     counter.classList.toggle('ok', len >= 200);
   }
 
+  // ---------- 주소 검색 (다음 우편번호 서비스) ----------
+  const btnSearchAddress = document.getElementById('btnSearchAddress');
+  if (btnSearchAddress){
+    btnSearchAddress.addEventListener('click', function(){
+      if (typeof daum === 'undefined' || !daum.Postcode){
+        alert('주소 검색 서비스를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침 해주세요.');
+        return;
+      }
+      new daum.Postcode({
+        oncomplete: function(data){
+          const fullAddress = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+          document.getElementById('f_zonecode').value = data.zonecode;
+          document.getElementById('f_address').value = fullAddress;
+          const detailEl = document.getElementById('f_address_detail');
+          detailEl.value = '';
+          detailEl.focus();
+          const row = document.getElementById('f_address').closest('.row');
+          if (row) row.classList.remove('invalid');
+          saveDraft();
+        }
+      }).open();
+    });
+  }
+
   // ---------- 최종 확인 요약 ----------
   const FIELD_MAP = [
     { title: '1. 기본 인적사항', items: [
       ['성명','f_name'],['생년월일','f_birth'],['성별','group:gender'],['혼인상태','group:marital'],
-      ['종교','group:religion'],['주소','f_address'],['휴대폰','f_phone'],['이메일','f_email']
+      ['종교','group:religion'],['우편번호','f_zonecode'],['주소','f_address'],['상세주소','f_address_detail'],['휴대폰','f_phone'],['이메일','f_email']
     ]},
     { title: '2. 학력 및 직업', items: [
       ['최종학력','group:edu'],['전공학과','f_major'],['학교명','f_school'],['졸업년도','f_gradyear'],

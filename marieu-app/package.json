@@ -1,0 +1,9 @@
+{
+  "name": "marieu-application-form",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MarieU 회원가입 신청서 웹앱 + Netlify Functions + Supabase 연동",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  }
+}
